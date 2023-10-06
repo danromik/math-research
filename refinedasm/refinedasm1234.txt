@@ -1,0 +1,830 @@
+print(`This is a Maple package companion to the paper titled`):
+print(`"New enumeration formulas for alternating sign matrices and square ice partition functions",`):
+print(`by Arvind Ayyer & Dan Romik.`):
+print(`The package implements the explicit formulas for refined enumeration of alternating sign matrices`):
+print(`and enables the user to compare these formulas with a brute force counting algorithm.`):
+print(`Type Help(); to view available procedures`):
+print(`or Help(procedure_name); to view details of the procedure.`):
+
+Help := proc()
+
+if nops([args])=0 then
+   print(`Procedures available are:`):
+   print(`Asm, Asmn, Top,`):
+   print(`TopLeft, GenTopLeft, VerifyTopLeft,`):
+   print(`TopBot, GenTopBot, VerifyTopBot,`):
+   print(`TopTop, GenTopTop, VerifyTopTop,`):
+   print(`TopLeftBot, GenTopLeftBot, VerifyTopLeftBot,`):
+   print(`TopLeftBotRight, GenTopLeftBotRight, VerifyTopLeftBotRight`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`Asm` then
+   print(`Asm(k):  lists all the ASMs of size k`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`Asmn` then
+   print(`Asmn(n):  returns the number of ASMs of size n`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`Top` then
+   print(`Top(n, k):  returns the number of ASMs of size n with a 1 at (1,k)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`TopLeft` then
+   print(`TopLeft(n,i,j):  counts (by brute force) all the ASMs of size n with a 1 at (1,i) and (j,1)`):
+   print(`(This works in a reasonable time only for n<7)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`GenTopLeft` then
+   print(`GenTopLeft(n,i,j): computes the number of ASMs of size n with a 1 at (1,i) and (j,1) using the explicit formula from the paper`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`VerifyTopLeft` then
+   print(`VerifyTopLeft(n,i,j):  Verifies the Top-Left formula at size n by comparing the brute force count to`):
+   print(`the explicit formula (use only for n<7). It will return a zero if correct.`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`TopBot` then
+   print(`TopBot(n,i,j):  counts (by brute force) all the ASMs of size n with a 1 at (1,i) and (n,j)`):
+   print(`(This works in a reasonable time only for n<7)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`GenTopBot` then
+   print(`GenTopBot(n,i,j): computes the number of ASMs of size n with a 1 at (1,i) and (n,j) using the explicit formula from the paper`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`VerifyTopBot` then
+   print(`VerifyTopBot(n,i,j):  Verifies the Top-Bot formula at size n by comparing the brute force count to`):
+   print(`the explicit formula (use only for n<7). It will return a zero if correct.`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`TopTop` then
+   print(`TopTop(n,i,j):  counts (by brute force) all the ASMs of size n whose sum of the first two rows has a 1 in columns i and j`):
+   print(`(This works in a reasonable time only for n<7)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`GenTopTop` then
+   print(`GenTopTop(n,i,j): computes the number of ASMs of size n whose sum of the first two rows has a 1 in columns i and j using the explicit formula from the paper`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`VerifyTopTop` then
+   print(`VerifyTopTop(n,i,j):  Verifies the Top-Top formula at size n by comparing the brute force count to`):
+   print(`the explicit formula (use only for n<7). It will return a zero if correct.`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`TopLeftBot` then
+   print(`TopLeftBot(n,i,j,k):  counts (by brute force) all the ASMs of size n with a 1 at (1,i), (j,1) and (n,k)`):
+   print(`(This works in a reasonable time only for n<7)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`GenTopLeftBot` then
+   print(`GenTopLeftBot(n,i,j,k): computes the number of ASMs of size n with a 1 at (1,i), (j,1) and (n,k) using the explicit formula from the paper`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`VerifyTopLeftBot` then
+   print(`VerifyTopLeftBot(n,x):  Verifies the Top-Bot-Left formula at size n by comparing the brute force count to`):
+   print(`the explicit formula (use only for n<7). It will return a zero if correct.`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`TopLeftBotRight` then
+   print(`TopLeftBotRight(n,i,j,k,l):  counts (by brute force) all the ASMs of size n with a 1 at (1,i), (j,1), (n,k) and (l,n)`):
+   print(`(This works in a reasonable time only for n<7)`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`GenTopLeftBotRight` then
+   print(`GenTopLeftBotRight(n,i,j,k,l): computes the number of ASMs of size n with a 1 at (1,i), (j,1), (n,k) and (l,n) using the explicit formula from the paper`):
+fi:
+
+if nops([args])=1 and op(1,[args])=`VerifyTopLeftBotRight` then
+   print(`VerifyTopLeftBotRight(n,x):  Verifies the Top-Bot-Left-Right formula at size n by comparing the brute force count to`):
+   print(`the explicit formula (use only for n<7). It will return a zero if correct.`):
+fi:
+
+end:
+
+with(LinearAlgebra):
+
+
+#################Refined enumeration counting##############
+#Top(n,k) returns the number of ASMS with a[1,k]=1
+Top := proc(n,k) local j:
+
+return `if`(k>n or k<1, 0,binomial(n+k-2,k-1)*(2*n-k-1)!/(n-k)!*mul((3*j+1)!/(n+j)!,j=0..n-2)):
+
+end:
+
+#TopBotMatrix(n) returns a matrix whose i,jth entry counts the number of asms with a[1,i]=a[n,j]=1
+TopBotMatrix := proc(n) local i,j,A,a,M:
+
+A := Asm(n):
+M := Matrix(n):
+for a in A do
+    for i from 1 to n do
+    	for j from 1 to n do
+	    if a[1,i]=1 and a[n,j]=1 then
+	       M[i,j]:=M[i,j]+1:
+	    fi:
+	od:
+    od:
+od:
+
+return M:
+
+end:
+
+#TopBot(n,i,j) returns the number of asms with a[1,i]=a[n,j]=1
+TopBot := proc(n,i,j) local M:
+
+if i<1 or i>n or j<1 or j>n then
+   return 0:
+fi:
+
+M := TopBotMatrix(n):
+return M[i,j]:
+
+end:
+
+#GenTopBot(n,i,j) generates TopBot(n,i,j) using Stroganov's formula
+GenTopBot := proc(n,i,j) local D1,s,t,k:
+
+if j<i then
+   return GenTopBot(n,j,i):
+fi:
+
+D1 := (n,s,t) -> (Top(n-1,t)*(Top(n,s+1)-Top(n,s))+Top(n-1,s)*(Top(n,t+1)-Top(n,t)))/Asmn(n-1):
+#return Top(n,j-i)+add(D1(n,k,j-i+k),k=1..i-1):
+return add(D1(n,k,j-i+k),k=0..i-1):
+
+end:
+
+#VerifyTopBot(n) verifies that the formula gives the correct answer
+VerifyTopBot := proc(n) local i,j:
+
+return {seq(seq(TopBot(n,i,j)-GenTopBot(n,i,j),i=1..n),j=1..n)}:
+
+end:
+
+#TopLeftMatrix(n) returns the number of asms with a[1,i]=a[j,1]=1
+TopLeftMatrix := proc(n) local i,j,A,a,M:
+
+A := Asm(n):
+M := Matrix(n):
+for a in A do
+    for i from 1 to n do
+    	for j from 1 to n do
+	    if a[1,i]=1 and a[j,1]=1 then
+	       M[i,j]:=M[i,j]+1:
+	    fi:
+	od:
+    od:
+od:
+
+return M:
+
+end:
+
+#TopLeft(n,i,j) returns a matrix whose i,jth entry counts the number of asms with a[1,i]=a[j,1]=1
+TopLeft := proc(n,i,j) local M:
+
+M := TopLeftMatrix(n):
+return M[i,j]:
+
+end:
+
+#GenTopLeft(n,i,j) generates TopBot(n,i,j) using Stroganov's formula
+GenTopLeft := proc(n,i,j) local D,s,t,k:
+
+if j=1 and i=1 then
+   return Asmn(n-1):
+elif i=1 and j>1 then
+     return 0:
+elif j=1 and i>1 then
+     return 0:
+fi:
+
+return binomial(i+j-4,i-2)*Asmn(n-1)-add(add(binomial(i+j-2-s-t,i-1-s)*GenTopBot(n,s,t),s=1..i-1),t=1..j-1):
+
+end:
+
+#VerifyTopLeft(n) verifies that the formula gives the correct answer
+VerifyTopLeft := proc(n) local i,j:
+
+return {seq(seq(TopLeft(n,i,j)-GenTopLeft(n,i,j),i=1..n),j=1..n)}:
+
+end:
+
+#TopTopMatrix(n) returns a matrix whose i,jth entry counts the number of asms with a[1,i]+a[2,i]=a[1,j]+a[2,j]=1
+TopTopMatrix := proc(n) local i,j,A,a,M:
+
+A := Asm(n):
+M := Matrix(n):
+for a in A do
+    for i from 1 to n do
+    	for j from 1 to n do
+	    if j>i and a[1,i]+a[2,i]=1 and a[1,j]+a[2,j]=1 then
+	       M[i,j]:=M[i,j]+1:
+	    fi:
+	od:
+    od:
+od:
+
+return M:
+
+end:
+
+#TopTop(n,i,j) returns the number of asms with a[1,i]+a[2,i]=a[1,j]+a[2,j]=1
+TopTop := proc(n,i,j) local M:
+
+if j<=i then
+   ERROR(`j has to be greater than i`):
+fi:
+
+M := TopTopMatrix(n):
+return M[i,j]:
+
+end:
+
+#GenTopTop(n,i,j) generates TopTop(n,i,j) using Stroganov's formula
+GenTopTop := proc(n,i,j) local E1,s,t,k:
+
+if j<=i then
+   return 0:
+fi:
+
+E1 := (n,s,t) -> (Top(n-1,t)*(Top(n,s+1)-Top(n,s))-Top(n-1,s)*(Top(n,t+1)-Top(n,t)))/Asmn(n-1):
+return (j-i+1)*add(add((-1)^t*binomial(s,t)*E1(n,i+t,j+s),t=0..s),s=0..n-j):
+
+end:
+
+#VerifyTopTop(n) verifies that the formula gives the correct answer
+VerifyTopTop := proc(n) local i,j:
+
+return {seq(seq(TopTop(n,i,j)-GenTopTop(n,i,j),j=i+1..n),i=1..n)}:
+
+end:
+
+
+
+
+
+
+#TopLeftBotMatrix(n) returns the number of asms with a[1,i]=a[j,1]=a[n,k]=1
+TopLeftBotMatrix := proc(n) local i,j,k,A,a,M:
+
+A := Asm(n):
+M := [[[0$n]$n]$n]:
+for a in A do
+    for i from 1 to n do
+    	for j from 1 to n do
+	    for k from 1 to n do
+	    	if a[1,i]=1 and a[j,1]=1 and a[n,k]=1 then
+	           M[i,j,k]:=M[i,j,k]+1:
+		fi:
+ 	    od:
+	od:
+    od:
+od:
+
+return M:
+
+end:
+
+#TopLeftBot(n,i,j,k) returns a matrix whose i,jth entry counts the number of asms with a[1,i]=a[j,1]=a[n,k]=1
+TopLeftBot := proc(n,i,j,k) local M:
+
+M := TopLeftBotMatrix(n):
+return M[i,j,k]:
+
+end:
+
+
+#GenTopLeftBot(n,i,j,k) generates TopLeftBot(n,i,j,k) using the new formula
+GenTopLeftBot := proc(n,i,j,k) local s,t,x,ans2,A:
+
+if i=1 then
+   if j=1 then
+      return Top(n-1,k-1):
+   else
+      return 0:
+   fi:
+elif k=1 then
+   if j=n then
+      return Top(n-1,i-1):
+   else
+      return 0:
+   fi:
+elif j=1 then
+   if i=1 then
+      return Top(n-1,k-1):
+   else
+      return 0:
+   fi:
+elif j=n then
+   if k=1 then
+      return Top(n-1,i-1):
+   else
+      return 0:
+   fi:
+fi:
+
+A := (n,i,x)->`if`(i=1,add(Top(n,s)*x^(s-1),s=1..n),
+	    `if`(i=2,add(Top(n-1,s)*x^(s),s=1..n-1),
+	    add((-2*(n-s+3)*Top(n-1,s-3)+(5*n-4*s+6)*Top(n-1,s-2)
+		+(n+4*s-6)*Top(n-1,s-1)-2*s*Top(n-1,s))*x^(s-1),s=1..n+2))):
+
+ans2 := 1/8/Asmn(n)^2/(2*n-2)*(((n-2)!*(3*n-2)!)/((2*n-3)!*(2*n-1)!))^2
+     *Determinant(Matrix(3,(i,j)->(x[j]-1)^(3-i)*A(n,i,x[j])))/(x[1]-x[2])/(x[1]-x[3])/(x[2]-x[3]):
+ans2 := ans2-(1-x[3]+x[2]*x[3])*x[2]^(n-2)*add(Top(n-1,s-1)*x[3]^(n-s),s=2..n):
+ans2 := ans2-(1-x[2]+x[1]*x[2])*x[3]^(n-1)*add(Top(n-1,t-1)*x[1]^(t-2),t=2..n):
+ans2 := factor(ans2/(1-x[2]+x[1]*x[2])/(1-x[3]+x[2]*x[3])):
+return coeftayl(ans2,[x[1],x[2],x[3]]=[0,0,0],[i-2,n-1-j,n-k]):
+
+end:
+
+
+#VerifyTopLeftBot(n) verifies that the formula gives the correct answer
+VerifyTopLeftBot := proc(n) local i,j:
+
+return {seq(seq(seq(TopLeftBot(n,i,j,k)-GenTopLeftBot(n,i,j,k),i=1..n),j=1..n),k=1..n)}:
+
+end:
+
+
+#TopLeftBotRightMatrix(n) returns a matrix whose i,jth entry counts the number of asms with a[1,i]=a[j,1]=a[n,k]=a[l,n]=1
+TopLeftBotRightMatrix := proc(n) local i,j,k,l,A,a,M:
+
+A := Asm(n):
+M := [[[[0$n]$n]$n]$n]:
+for a in A do
+    for i from 1 to n do
+    	for j from 1 to n do
+	    for k from 1 to n do
+	    	for l from 1 to n do
+	    	    if a[1,i]=1 and a[j,1]=1 and a[n,k]=1 and a[l,n]=1 then
+	               M[i,j,k,l]:=M[i,j,k,l]+1:
+		    fi:
+		od:
+ 	    od:
+	od:
+    od:
+od:
+
+return M:
+
+end:
+
+#TopLeftBotRight(n,i,j,k,l) returns a matrix whose i,jth entry counts the number of asms with a[1,i]=a[j,1]=a[n,k]=a[l,n]=1
+TopLeftBotRight := proc(n,i,j,k,l) local M:
+
+M := TopLeftBotRightMatrix(n):
+return M[i,j,k,l]:
+
+end:
+
+#GenTopLeftBotRight(n,i,j,k,l) generates TopLeftBotRight(n,i,j,k,l) using the new formula
+GenTopLeftBotRight := proc(n,i,j,k,l) local s,t,u,v,x,ans,ans2,A,dn1,dn:
+
+if i=1 then
+   if j=1 then
+      return GenTopLeft(n-1,n+1-k,n+1-l):
+   else
+      return 0:
+   fi:
+elif i=n then
+   if l=1 then
+      return GenTopLeft(n-1,k,n+1-j):
+   else
+      return 0:
+   fi:
+elif j=1 then
+   if i=1 then
+      return GenTopLeft(n-1,n+1-k,n+1-l):
+   else
+      return 0:
+   fi:
+elif j=n then
+   if k=1 then
+      return GenTopLeft(n-1,n+1-i,l):
+   else
+      return 0:
+   fi:
+elif k=1 then
+   if j=n then
+      return GenTopLeft(n-1,n+1-i,l):
+   else
+      return 0:
+   fi:
+elif k=n then
+   if l=n then
+      return GenTopLeft(n-1,i,j):
+   else
+      return 0:
+   fi:
+elif l=1 then
+   if i=n then
+      return GenTopLeft(n-1,k,n+1-j):
+   else
+      return 0:
+   fi:
+elif l=n then
+   if k=n then
+      return Top(n-1,i,j):
+   else
+      return 0:
+   fi:
+fi:
+
+A := (n,i,x)->`if`(i=1,add(Top(n,s)*x^(s-1),s=1..n),
+	    `if`(i=2,add(Top(n-1,s)*x^(s),s=1..n-1),
+	    `if`(i=3,add((-2*(n-s+3)*Top(n-1,s-3)+(5*n-4*s+6)*Top(n-1,s-2)
+		+(n+4*s-6)*Top(n-1,s-1)-2*s*Top(n-1,s))*x^(s-1),s=1..n+2),
+	    add((4*(n+4-s)*(n+5-s)*Top(n-1,s-5) 
+	    -4*(n+4-s)*(5*n+11-4*s)*Top(n-1,s-4) 
+	    +(240-172*s+32*s^2+120*n-52*s*n+21*n^2)*Top(n-1,s-3) 
+	    -2*(80-80*s+20*s^2+42*n-20*s*n-5*n^2)*Top(n-1,s-2) 
+	    +(64-84*s+32*s^2-4*n-12*s*n+n^2)*Top(n-1,s-1) 
+	    -4*s*(n-5+4*s)*Top(n-1,s) 
+	    +4*s*(s+1)*Top(n-1,s+1))*x^(s-1),s=1..n+3)))):
+ans2 := factor(1/64/Asmn(n)^3/(2*n-2)^2/(2*n-3)*(((n-2)!*(3*n-2)!)/((2*n-3)!*(2*n-1)!))^3
+     *Determinant(Matrix(4,(s,t)->(x[s]-1)^(4-t)*A(n,t,x[s])))/mul(mul((x[s]-x[t]),t=s+1..4),s=1..3)):
+
+#2-Boundary terms
+ans2 := ans2-mul(1-x[s+1]+x[s]*x[s+1],s=2..3)*(1-x[1]+x[1]*x[4])*x[2]^(n-2)*
+       add(add(GenTopLeft(n-1,n+1-s,n+1-t)*x[3]^(n-1-s)*x[4]^(t-2),s=2..n-1),t=2..n-1):
+
+ans2 := ans2-(1-x[2]+x[1]*x[2])*(1-x[4]+x[3]*x[4])*(1-x[1]+x[1]*x[4])*x[3]^(n-2)*
+       add(add(GenTopLeft(n-1,n+1-s,t)*x[1]^(s-2)*x[4]^(t-2),s=2..n-1),t=2..n-1):
+
+ans2 := ans2-(1-x[2]+x[1]*x[2])*(1-x[3]+x[2]*x[3])*(1-x[1]+x[1]*x[4])*x[4]^(n-2)*
+       add(add(GenTopLeft(n-1,s,t)*x[1]^(s-2)*x[2]^(n-1-t),s=2..n-1),t=2..n-1):
+
+ans2 := ans2-(1-x[2]+x[1]*x[2])*(1-x[3]+x[2]*x[3])*(1-x[4]+x[3]*x[4])*x[1]^(n-2)*
+       add(add(GenTopLeft(n-1,t,n+1-s)*x[2]^(n-1-s)*x[3]^(n-1-t),s=2..n-1),t=2..n-1):
+
+#4-Boundary terms
+ans2 := ans2-Asmn(n-2)*x[2]^(n-2)*x[4]^(n-2)*(1-x[3]+x[2]*x[3])*(1-x[1]+x[4]*x[1])
+	-Asmn(n-2)*x[1]^(n-2)*x[3]^(n-2)*(1-x[2]+x[1]*x[2])*(1-x[4]+x[3]*x[4]):
+
+ans2 := factor(ans2/(1-x[1]+x[4]*x[1])/(1-x[2]+x[1]*x[2])/(1-x[3]+x[2]*x[3])/(1-x[4]+x[3]*x[4])):
+
+#return factor(ans/ans2):
+return coeftayl(ans2,[x[1],x[2],x[3],x[4]]=[0,0,0,0],[i-2,n-1-j,n-1-k,l-2]):
+
+end:
+
+#VerifyTopLeftBotRight(n) checks that the conjectured formula for Top-Left-Bot-Right
+#enumeration is correct
+VerifyTopLeftBotRight := proc(n) local i,j,k,l:
+
+return {seq(seq(seq(seq(TopLeftBot(n,i,j,k)-GenTopLeftBot(n,i,j,k),i=1..n),j=1..n),k=1..n),l=1..n)}:
+
+end:
+
+
+##################Procedures from ROBBINS by Doron Zeilberger#########
+#Asm(n) returns the ASMs of size n
+Asm := proc(n) local gogs, asms:
+
+gogs := GOGset(n,n):
+
+asms := {seq(Matrix(op(GOGTOASM(op(i,gogs)))),i=1..nops(gogs))}:
+
+return asms:
+
+end:
+
+ASM:=proc(k)
+local i,gu,asm:
+ 
+gu:=GOGset(k,k):
+ 
+print(`There are`, nops(gu),`Alternating Sign Matrices of size`,k):
+print(`Here they all are:`):
+ 
+for i from 1 to nops(gu) do
+  asm:=GOGTOASM(op(i,gu)):
+ print(op(asm)):
+od:
+ 
+ 
+end:
+
+ 
+#GOGa(k,n,a)  gives  the   set of  k by n Gog-trapezoids  such  that
+#the rightmost border is the  vector a
+ 
+GOGa:=proc(k,n,a)
+local pip,kvu,firow,b,mu,gu,i,j,l,trap,trap1:
+ 
+if  not k>=1 or not n>=k  or  not nops(a)=k  then
+  ERROR(`Improper intput`):
+fi:
+ 
+ 
+if n=k and k=1 then
+   if not op(1,a)=1 then
+     RETURN({}):
+   else
+     RETURN({[[1]]}):
+   fi:
+fi:
+ 
+if n=k then
+   if not op(1,a)=k then
+      ERROR(`Wrong input`):
+   fi:
+   mu:=GOGa(k-1,k,[op(2..k,a)]):
+    gu:={}:
+ 
+    for i from 1 to nops(mu) do
+     trap1:=op(i,mu):
+     firow:=op(1,trap1):
+    
+     gu:=gu union {[[op(firow),k],op(2..k,trap1)]}:
+        od:
+ RETURN(gu):
+fi:
+ 
+gu:={}:    
+ 
+kvu:=Tkn(k,n,a):
+ 
+ 
+ for pip from 1 to nops(kvu) do
+   b:=op(pip,kvu):
+ 
+  mu:=GOGa(k,n-1,b):
+ 
+   for j from 1 to nops(mu) do
+    trap:=op(j,mu):
+    trap1:=[op(1..n-k,trap)]:
+ 
+     for l from n-k+1 to n-1 do
+       trap1:=[op(trap1),[op(op(l,trap)),op(l-(n-k),a)]]:
+     od:
+      
+      trap1:=[op(trap1),[op(k,a)]]:
+     gu:=gu union {trap1}:
+ 
+   od:
+ 
+ 
+od:
+ 
+gu:
+ 
+end:
+ 
+GOG:=proc(k,n)
+local i,gu,lu:
+ 
+lu:=LOGOG(k,n):
+gu:={}:
+ 
+for i from 1 to nops(lu) do
+ gu:=gu union GOGa(k,n,op(i,lu)):
+od:
+ 
+gu:
+ 
+print(`The number of Gog Trapezoids with k=`,k,`and n=`,n,`equals`,nops(gu)):
+print(`Here they all are`):
+ 
+for i from 1 to nops(gu) do
+yafe(op(i,gu)):
+lprint(``):
+od:
+ 
+gu:
+ 
+end:
+ 
+ 
+GOGset:=proc(k,n)
+local i,gu,lu:
+ 
+lu:=LOGOG(k,n):
+gu:={}:
+ 
+for i from 1 to nops(lu) do
+ gu:=gu union GOGa(k,n,op(i,lu)):
+od:
+ 
+gu:
+ 
+gu:
+ 
+end:
+ 
+GOGTOASM:=proc(mt)
+local k,mat,mat1,ro,i,j:
+ 
+k:=nops(mt):
+ 
+mat:=array(1..k,1..k):
+mat1:=array(1..k,1..k):
+ 
+for i from 1 to k do
+ for j from 1 to k do
+   mat[i,j]:=0:
+ od:
+od:
+ 
+ 
+  for i from 1 to k do
+   ro:=op(i,mt):
+    for j from 1 to nops(ro) do
+      mat[i,op(j,ro)]:=1:
+    od:
+  od:
+ 
+for i from 1 to k-1 do
+ for j from 1 to k do
+  mat1[i,j]:=mat[i,j]-mat[i+1,j]:
+ od:
+ 
+ for j from 1 to k do
+  mat1[k,j]:=mat[k,j]:
+ od:
+ 
+od:
+ 
+mat1:
+ 
+end:
+
+ 
+DECSEQ:=proc(k,n)
+local gu,gu1,i1:
+option remember:
+ 
+if n=1 and  k=1 then
+ RETURN({[1]}):
+fi:
+ 
+if k=0  and  n>=1 then
+    RETURN({[]}):
+fi:
+ 
+if n<1 or  k<1  then
+   RETURN({}):
+fi:
+ 
+gu:=DECSEQ(k,n-1):
+gu1:=DECSEQ(k-1,n):
+ 
+for i1 from 1   to  nops(gu1)  do
+  gu:=gu  union   {[n,op(op(i1,gu1))]}:
+od:
+ 
+gu:
+ 
+end:
+ 
+ 
+DECSEQ0:=proc(k,n)
+local gu,gu1,i1:
+option remember:
+ 
+if n=0 and  k=1 then
+ RETURN({[0]}):
+fi:
+ 
+if k=0  and  n>=1 then
+    RETURN({[]}):
+fi:
+ 
+if n<0 or  k<1  then
+   RETURN({}):
+fi:
+ 
+gu:=DECSEQ0(k,n-1):
+gu1:=DECSEQ0(k-1,n):
+ 
+for i1 from 1   to  nops(gu1)  do
+  gu:=gu  union   {[n,op(op(i1,gu1))]}:
+od:
+ 
+gu:
+ 
+end:
+ 
+ 
+LOGOG:=proc(k,n)
+local gu,gu1,i,i1,vec,nakh:
+ 
+if not k>=1  or  not n>=k then
+  RETURN({}):
+fi:
+ 
+gu1:=DECSEQ(k,n):
+ 
+gu:={}:
+ 
+ 
+for i from 1 to nops(gu1) do
+ vec:=op(i,gu1):
+  nakh:=1:
+    for  i1  from 1 to k  do
+       if  not op(i1,vec)>=k-i1+1 then
+           nakh:=0:
+           exit:
+       fi:
+    od:
+ 
+      if nakh=1 then
+          gu:=gu union {vec}:
+        fi:
+od:
+ 
+ 
+gu:
+ 
+end:
+ 
+ 
+ELOGOG:=proc(k,n)
+local gu,gu1,i,i1,vec,nakh:
+ 
+if not k>=1  or  not n>=k then
+  RETURN({}):
+fi:
+ 
+gu1:=DECSEQ0(k,n+1):
+ 
+gu:={}:
+ 
+ 
+for i from 1 to nops(gu1) do
+ vec:=op(i,gu1):
+  nakh:=1:
+ 
+    if op(1,vec)=n+1 and op(2,vec)>n then
+      nakh:=0:
+    fi:
+ 
+    if op(1,vec)=n and n=k and op(2,vec)=k then
+      nakh:=0:
+    fi:
+ 
+    for  i1  from 1 to k  do
+       if  not op(i1,vec)>=k-i1 then
+           nakh:=0:
+           exit:
+       fi:
+    od:
+ 
+      if nakh=1 then
+          gu:=gu union {vec}:
+        fi:
+od:
+ 
+ 
+gu:
+ 
+end:
+ 
+ 
+ 
+#Tkn gives the set T_k(n;a), where a=[a_1, ..., a_k] defined in the
+#proof of 1.2.1.1
+ 
+Tkn:=proc(k,n,a)
+local nakh,i1,b,i,gu,mu:
+ 
+mu:=DECSEQ(k,n-1):
+gu:={}:
+ 
+for i from 1 to nops(mu) do
+  b:=op(i,mu):
+ 
+nakh:=1:
+ 
+ 
+ 
+  for i1 from 1 to 1 do
+    if not ( k-i1+1<=op(i1,b) and op(i1,b)<=op(i1,a) )
+        then
+            nakh:=0:
+    fi:
+ 
+  od:
+ 
+  for i1 from 2 to k do
+    if not ( k-i1+1<=op(i1,b) and op(i1,b)<=min( op(i1,a),op(i1-1,a)-1 )   )
+        then
+            nakh:=0:
+    fi:
+ 
+  od:
+ 
+ 
+if nakh=1 then
+  gu:=gu union {b}:
+fi:
+ 
+od:
+ 
+gu:
+ 
+end:
